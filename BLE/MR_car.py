@@ -20,7 +20,7 @@ from micropython import const
 # Set up Bluetooth structure data, provided to us by the Mind Render folks and 
 # then modified.
 # This takes up a lot of the code, to skip to the main content jump to line 
-# 148. Remember to change the name of your SPIKE (if you want) on line 101.
+# 138. Remember to change the name of your SPIKE (if you want) on line 96.
 _ADV_TYPE_FLAGS = const(0x01)
 _ADV_TYPE_NAME = const(0x09)
 _ADV_TYPE_UUID16_COMPLETE = const(0x3)
@@ -84,11 +84,6 @@ _UART_SERVICE = (
     (_UART_TX, _UART_RX),
 )
 
-def winning_display():
-    """Display target when player completes the hole."""
-    for i in range(50):
-        hub.light_matrix.show_image("YES", i*2)
-
 class BLEPeripheral:
     def __init__(self):
         self._ble = bluetooth.BLE()
@@ -116,8 +111,6 @@ class BLEPeripheral:
             conn_handle, _, _ = data
             self._connections.add(conn_handle)
             print("Connection", conn_handle)
-            for i in range(50):
-                hub.light_matrix.show_image("ARROW_N", i*2)
 
         elif event == _IRQ_CENTRAL_DISCONNECT:
             print("Disconnected")
@@ -136,9 +129,6 @@ class BLEPeripheral:
             if value_handle == self._handle_rx:
                 msg = value.decode()
                 print("Rx", msg)
-                if  msg == "score":
-                    winning_display()
-
 
     def _advertise(self):
         self._ble.gap_advertise(500000, adv_data=self._payload)
@@ -158,6 +148,8 @@ while True:
     pitch = hub.motion_sensor.get_pitch_angle()
     roll = hub.motion_sensor.get_roll_angle()
     tosend = str(pitch/30) + ", " + str(roll/10+9)
-    print("sent:", tosend)
+    
+    # Uncomment if you want to see what data is being sent
+    # print("sent:", tosend)
     ble.send(tosend)
     utime.sleep(0.1)

@@ -92,7 +92,7 @@ class BLEPeripheral:
         self._ble = bluetooth.BLE()
         self._ble.active(True)
         self._ble.irq(self._irq)
-        ((self._handle_tx, self._handle_rx),) = \ 
+        ((self._handle_tx, self._handle_rx),) = \
             self._ble.gatts_register_services((_UART_SERVICE,))
         self._connections = set()
         rand = random.randint(1, 100)
@@ -134,7 +134,7 @@ class BLEPeripheral:
             if value_handle == self._handle_rx:
                 msg = value.decode()
                 print("Rx", msg)
-                if  msg == "score":
+                if msg == "score":
                     winning_display()
 
 

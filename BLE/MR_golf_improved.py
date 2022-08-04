@@ -142,7 +142,7 @@ class BLEPeripheral:
             if value_handle == self._handle_rx:
                 msg = value.decode()
                 print("Rx", msg)
-                if  msg == "score":
+                if msg == "score":
                     won()
                 elif msg == "reset":
                     main_loop()

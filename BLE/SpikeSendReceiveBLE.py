@@ -124,7 +124,7 @@ class BLEPeripheral:
 
     def _irq(self, event, data):
         if event == _IRQ_CENTRAL_CONNECT:
-            print('line 112|_IRQ_CENTRAL_CONNECT')
+            print('_IRQ_CENTRAL_CONNECT')
             hub.sound.beep(750,100) # A little sound effect when it connects
             sleep(.1)
             hub.sound.beep(800,100)
@@ -180,7 +180,7 @@ steer = Motor('A')
 steer.set_stop_action('hold')
 
 # Motor becomes horizontal at start of code
-steer.run_to_position(185, speed=5)
+steer.run_to_position(183, speed=5)
 
 # Degrees counted is set to 180 which MR uses as the middle point
 steer.set_degrees_counted(180)
