@@ -125,7 +125,7 @@ class BLEPeripheral:
             if conn_handle in self._connections:
                 self._connections.remove(conn_handle)
                 
-            #self._advertise()
+            # self._advertise()
             print("Disconnected", conn_handle)
 
         elif event == _IRQ_GATTS_WRITE:
@@ -142,7 +142,7 @@ class BLEPeripheral:
 
     def _advertise(self):
         self._ble.gap_advertise(500000, adv_data=self._payload)
-        #self._ble.gap_advertise(500, "MindRender")
+        # self._ble.gap_advertise(500, "MindRender")
         print("Advertising")
 
 # Initialize hub

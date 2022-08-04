@@ -12,11 +12,14 @@ To do
 - Add comments to the BLEPeripheral class
 
 Changelog
+8/4/22
+- Modified the steering so it no longer switches directions when past 360 and 0 
+  degrees.
 7/27/22
 - Cleaned it up
 7/26/22
 - Reworked the whole thing so it now runs on async, the rumble freeze bug has 
-been fixed
+  been fixed
 7/20/22
 - Created file
 """
@@ -29,11 +32,10 @@ from micropython import const
 from time import sleep
 from random import randint
 
-
 # Set up Bluetooth structure data, provided to us by the Mind Render folks and 
 # then modified.
 # This takes up a lot of the code, to skip to the main content jump to line 
-# 165. Remember to change the name of your SPIKE (if you want) on line 108.
+# 169. Remember to change the name of your SPIKE (if you want) on line 111.
 _ADV_TYPE_FLAGS = const(0x01)
 _ADV_TYPE_NAME = const(0x09)
 _ADV_TYPE_UUID16_COMPLETE = const(0x3)
@@ -155,7 +157,8 @@ class BLEPeripheral:
 
     def _advertise(self, name):
         self._ble.gap_advertise(500000, adv_data=self._payload)
-        hub.sound.beep(800,150) # A little sound effect when it starts advertising
+        # A little sound effect when it starts advertising
+        hub.sound.beep(800,150) 
         sleep(.18)
         hub.sound.beep(750,150)
         sleep(.18)
@@ -172,18 +175,36 @@ sleep(.5)
 hub.display.pixel(2,2,10)
 
 # Set up the motor and force sensor on the Prime
-steer = Motor('A') # Make sure to switch this and the next two to the right ports
+# Make sure to switch this and the next two to the right ports
+steer = Motor('A') 
+steer.set_stop_action('hold')
+
+# Motor becomes horizontal at start of code
+steer.run_to_position(185, speed=5)
+
+# Degrees counted is set to 180 which MR uses as the middle point
+steer.set_degrees_counted(180)
+
+steer.set_stop_action('coast')
+
 gas = ForceSensor('F')
 brake = ForceSensor('E')
-steer.set_stop_action('coast')
 steer.stop()
 
 # Async function for sending SPIKE data to MR
 async def sending():
     while True:
-        payload = str(steer.get_position()) + "," + str(gas.get_force_percentage()) + "," + str(brake.get_force_percentage())
+        degrees = steer.get_degrees_counted()
+        if degrees > 360:
+            degrees = 360
+        elif degrees < 0:
+            degrees = 0
+        
+        payload = (str(degrees) + "," + str(gas.get_force_percentage()) + "," + 
+                   str(brake.get_force_percentage()))
         ble.send(payload)
-        # print(payload) # Uncomment if you're sus at what data is being sent and you want to see
+        # print(payload) # xUncomment if you're sus at what data is being sent 
+        # and you want to see
         await ua.sleep(.01)
 
 # Async function for the force feedback, called from receiving()
@@ -198,13 +219,17 @@ async def rumble(speed):
 async def receiving():
     old_data = ""
     while True:
-        value_handle = 12 # 10 for connection statuses, 12 for data Tx (from what I can tell); don't change
+        # 10 for connection statuses, 12 for data Tx (from what I can tell); 
+        # don't change
+        value_handle = 12
         new_data = ble._ble.gatts_read(value_handle)
         
-        if (not new_data == old_data) and new_data:  # Need the second condition for edge case when it starts
+        # Need the second condition for edge case when it starts
+        if (not new_data == old_data) and new_data: 
             old_data = new_data
             msg = float(new_data.decode())
-            # print("msg |", msg,"|| going to rumble")  # Uncomment to see if you're sus
+            # Uncomment to see if you're sus
+            # print("msg |", msg,"|| going to rumble")
             await rumble(msg)
 
         await ua.sleep(.01)
@@ -213,7 +238,6 @@ async def receiving():
 async def main():
     ua.create_task(receiving())
     await ua.create_task(sending())
-
 
 # Run
 ua.run(main())

@@ -5,6 +5,10 @@ two left and right buttons included on the hub to a wheel attached to a
 rotation sensor. This version also makes use of a light sensor to indicate when 
 the user will swing.
 
+The code uses a main loop that contains the shooting mode where the user can 
+swing to send an acceleration value to MR. From shooting mode you can access 
+turning mode and from turning mode you can access height mode.
+
 Example LEGO golf club build can be found in this folder
 
 Accompanying MR environment: golf_improved; share code: golf_improved
@@ -23,7 +27,7 @@ from micropython import const
 # Set up Bluetooth structure data, provided to us by the Mind Render folks and 
 # then modified.
 # This takes up a lot of the code, to skip to the main content jump to line 
-# 151. Remember to change the name of your SPIKE (if you want) on line 105.
+# 155. Remember to change the name of your SPIKE (if you want) on line 109.
 _ADV_TYPE_FLAGS = const(0x01)
 _ADV_TYPE_NAME = const(0x09)
 _ADV_TYPE_UUID16_COMPLETE = const(0x3)
@@ -127,7 +131,7 @@ class BLEPeripheral:
             if conn_handle in self._connections:
                 self._connections.remove(conn_handle)
                 
-            #self._advertise()
+            # self._advertise()
             print("Disconnected", conn_handle)
 
         elif event == _IRQ_GATTS_WRITE:
@@ -145,7 +149,7 @@ class BLEPeripheral:
 
     def _advertise(self):
         self._ble.gap_advertise(500000, adv_data=self._payload)
-        #self._ble.gap_advertise(500, "MindRender")
+        # self._ble.gap_advertise(500, "MindRender")
         print("Advertising")
 
 # Initialize hub
@@ -162,7 +166,6 @@ last_degrees_counted1 = 0
 def turning_mode():
     """Loop that controls the robot's rotation
     
-    Degrees of rotation sensor 
     The ratio of degrees rotated in real life to degrees rotated in MR is 5:1
     """
     print("turning mode")
@@ -187,7 +190,7 @@ def turning_mode():
         # Surface Studio Laptop we tested on, 0.02 seconds was optimal.
         time.sleep(0.02)
 
-        # cycles to height_mode when tapped
+        # Cycles to height_mode when tapped
         if hub.motion_sensor.get_gesture() == "tapped":
             # Records last degrees counted
             last_degrees_counted1 = sensor.get_degrees_counted()
@@ -204,7 +207,7 @@ def height_mode():
     """
     print("height mode")
 
-    # display double-edged arrow to indicate height mode
+    # Display double-edged arrow to indicate height mode
     hub.light_matrix.off()
     for i in range(50):
         hub.light_matrix.set_pixel(2, 0, i*2)
@@ -236,7 +239,7 @@ def height_mode():
         ble.send("height:" + str(degrees / 10))
         time.sleep(0.02)
 
-        # cycles to main_loop() when tapped
+        # Cycles to main_loop() when tapped
         if hub.motion_sensor.get_gesture() == "tapped":
             last_degrees_counted2 = sensor.get_degrees_counted()
             break
@@ -269,7 +272,8 @@ def main_loop():
                     # Instantaneous x y z acceleration
                     (a_x, a_y, a_z) = motion.accelerometer()
 
-                    # Take magnitude of x, and y acceleration and append to array
+                    # Take magnitude of x, and y acceleration and append to 
+                    # array
                     mag = math.sqrt(a_x**2 + a_y**2)
                     accs.append(mag)
 

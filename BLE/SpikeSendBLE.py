@@ -9,7 +9,8 @@ To do
 
 Changelog
 6/28/22
-- Created new file based off of SpikeSend.py but uses BLE protocol to communicate with MR
+- Created new file based off of SpikeSend.py but uses BLE protocol to 
+  communicate with MR
 """
 
 import bluetooth, hub, math, utime, struct
@@ -21,7 +22,7 @@ from micropython import const
 # Set up Bluetooth structure data, provided to us by the Mind Render folks and 
 # then modified.
 # This takes up a lot of the code, to skip to the main content jump to line 
-# 149. Remember to change the name of your SPIKE (if you want) on line 102.
+# 150. Remember to change the name of your SPIKE (if you want) on line 103.
 _ADV_TYPE_FLAGS = const(0x01)
 _ADV_TYPE_NAME = const(0x09)
 _ADV_TYPE_UUID16_COMPLETE = const(0x3)
@@ -143,39 +144,40 @@ class BLEPeripheral:
 
     def _advertise(self):
         self._ble.gap_advertise(500000, adv_data=self._payload)
-        #self._ble.gap_advertise(500, "MindRender")
+        # self._ble.gap_advertise(500, "MindRender")
         print("Advertising")
 
 ble = BLEPeripheral()
 hub = PrimeHub()
 
 while True:
-    #empty array to hold acceleration values
+    # Empty array to hold acceleration values
     accs = []
     
-    #wait until left button is pressed
+    # Wait until left button is pressed
     hub._left_button.wait_until_pressed()
     while hub._left_button.is_pressed():
-        #instantaneous x y z acceleration
+        # Instantaneous x y z acceleration
         (a_x, a_y, a_z) = motion.accelerometer()
         
-        #take magnitude of x and y acceleration (since on flat table) and add to array
+        # Take magnitude of x and y acceleration (since on flat table) and add 
+        # to array
         mag = math.sqrt(a_x**2 + a_y**2)
         accs.append(mag)
         
-        #samples acceleration every 0.01 seconds
+        # Samples acceleration every 0.01 seconds
         utime.sleep(0.01)
     
-    #find maximum acceleration while left button was held
+    # Find maximum acceleration while left button was held
     acc = max(accs)
     
-    # uncomment if you want to see the accel data
+    # Uncomment if you want to see the accel data
     # print(accs)
 
     ble.send(str(acc))
     print(acc)
     
-    #display an arrow on hub display with increasing brightness
+    # Display an arrow on hub display with increasing brightness
     for i in range(11):
         hub.light_matrix.show_image('ARROW_N', brightness=i*10)
         utime.sleep(.1)

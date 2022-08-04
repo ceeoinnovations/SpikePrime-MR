@@ -123,7 +123,7 @@ class BLEPeripheral:
             if conn_handle in self._connections:
                 self._connections.remove(conn_handle)
                 
-            #self._advertise()
+            # self._advertise()
             print("Disconnected", conn_handle)
 
         elif event == _IRQ_GATTS_WRITE:
@@ -140,7 +140,7 @@ class BLEPeripheral:
 
     def _advertise(self):
         self._ble.gap_advertise(500000, adv_data=self._payload)
-        #self._ble.gap_advertise(500, "MindRender")
+        # self._ble.gap_advertise(500, "MindRender")
         print("Advertising")
 
 # Initialize hub
@@ -171,7 +171,7 @@ def turning_mode():
             hub.right_button.wait_until_released()
             ble.send(str(0))
             print("sent neutral")
-        # cycles to height_mode when tapped
+        # Cycles to height_mode when tapped
         elif hub.motion_sensor.get_gesture() == "tapped":
             height_mode()
             break
@@ -180,7 +180,7 @@ def height_mode():
     """Loop that controls the trajectory's height"""
     print("height mode")
 
-    # display double-edged arrow
+    # Display double-edged arrow
     hub.light_matrix.off()
     for i in range(50):
         hub.light_matrix.set_pixel(2, 0, i*2)
@@ -192,7 +192,7 @@ def height_mode():
         hub.light_matrix.set_pixel(3, 3, i*2)
 
     while True:
-        # same mechanism as in turning_mode()
+        # Same mechanism as in turning_mode()
         if hub.left_button.is_pressed():
             ble.send(str(2))
             print("sent down")
@@ -205,7 +205,7 @@ def height_mode():
             hub.right_button.wait_until_released()
             ble.send(str(3))
             print("sent neutral")
-        # cycles to main_loop() when tapped
+        # Cycles to main_loop() when tapped
         elif hub.motion_sensor.get_gesture() == "tapped":
             break
 
@@ -222,29 +222,30 @@ def main_loop():
         while True:
             if hub.left_button.is_pressed():
                 print("collecting data")
-                # display slower arrow when left button is pressed
+                # Display slower arrow when left button is pressed
                 for i in range(100):
                     hub.light_matrix.show_image("ARROW_N", i)
                     time.sleep(0.01)
                 while hub.left_button.is_pressed():
-                    # instantaneous x y z acceleration
+                    # Instantaneous x y z acceleration
                     (a_x, a_y, a_z) = motion.accelerometer()
 
-                    # take magnitude of x, and y acceleration and append to array
+                    # Take magnitude of x, and y acceleration and append to 
+                    # array
                     mag = math.sqrt(a_x**2 + a_y**2)
                     accs.append(mag)
 
-                    # samples acceleration every 0.01 seconds
+                    # Samples acceleration every 0.01 seconds
                     time.sleep(0.01)
             
                 try:
                     acc = max(accs)
                     print("Acceleration: ", acc)
                     ble.send(str(acc))
-                # if no acc data was collected before button was released
+                # If no acc data was collected before button was released
                 except ValueError:
                     print("Hold down the button for longer!")
-            # cycles to turning_mode() when tapped
+            # Cycles to turning_mode() when tapped
             elif hub.motion_sensor.get_gesture() == "tapped":
                 turning_mode()
                 break
